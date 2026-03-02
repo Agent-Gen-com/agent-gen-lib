@@ -1,0 +1,18 @@
+[package]
+name = "agentgen-cli"
+version = "0.1.0"
+edition = "2021"
+description = "CLI for the AgentGen API — HTML to PDF and Image"
+license = "MIT"
+
+[[bin]]
+name = "agentgen"
+path = "src/main.rs"
+
+[dependencies]
+agentgen = { path = "../agentgen" }
+clap = { version = "4", features = ["derive", "env"] }
+tokio = { workspace = true }
+reqwest = { workspace = true }
+colored = "2"
+anyhow = "1"
