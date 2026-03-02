@@ -1,6 +1,6 @@
 {
   "name": "agentgen",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "TypeScript/JavaScript client for the AgentGen API — HTML to PDF and Image",
   "type": "module",
   "main": "dist/index.js",
@@ -17,6 +17,12 @@
     "prepublishOnly": "npm run build"
   },
   "keywords": ["agentgen", "html-to-pdf", "html-to-image", "pdf", "screenshot"],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Agent-Gen-com/agent-gen-lib.git",
+    "directory": "typescript"
+  },
+  "homepage": "https://github.com/Agent-Gen-com/agent-gen-lib",
   "license": "MIT",
   "devDependencies": {
     "typescript": "^5.4.0"

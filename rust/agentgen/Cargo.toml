@@ -1,9 +1,12 @@
 [package]
 name = "agentgen"
-version = "0.1.0"
+version = "0.1.2"
 edition = "2021"
 description = "Rust client for the AgentGen API — HTML to PDF and Image"
 license = "MIT"
+readme = "../README.md"
+repository = "https://github.com/Agent-Gen-com/agent-gen-lib"
+homepage = "https://github.com/Agent-Gen-com/agent-gen-lib"
 keywords = ["agentgen", "html-to-pdf", "html-to-image", "pdf", "screenshot"]
 
 [dependencies]
