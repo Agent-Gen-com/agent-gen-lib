@@ -43,11 +43,19 @@ jobs:
         run: npm run lint
         working-directory: n8n
 
+      - name: Sync dist to repo root (required for n8n verifier)
+        run: |
+          # n8n's verification checks raw.githubusercontent.com/{repo}/main/dist/...
+          # (without applying repository.directory). We keep a copy at the root.
+          rm -rf dist/credentials dist/nodes
+          cp -r n8n/dist/credentials dist/credentials
+          cp -r n8n/dist/nodes dist/nodes
+
       - name: Commit built dist/ to repo
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add n8n/dist/
+          git add n8n/dist/ dist/credentials/ dist/nodes/
           # Only commit if there are changes (idempotent)
           git diff --staged --quiet || git commit -m "chore: update n8n dist for ${{ github.ref_name }}"
           git push origin HEAD:main
