@@ -1,0 +1,13 @@
+# Rust build artifacts
+rust/target/
+
+# Python build artifacts
+python/dist/
+python/**/__pycache__/
+python/**/*.egg-info/
+
+# TypeScript build artifacts
+typescript/dist/
+
+# Node modules
+node_modules/
