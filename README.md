@@ -2,6 +2,42 @@
 
 Official client libraries and CLI for the [AgentGen API](https://www.agent-gen.com) — an HTML → PDF and HTML → Image generation service built for AI agents and developers.
 
+## CLI Installation
+
+The `agentgen` CLI lets you call the API from any shell script or CI pipeline without writing code.
+
+### One-liner (Linux & macOS)
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/Agent-Gen-com/agent-gen-lib/main/install.sh | sh
+```
+
+Installs to `~/.local/bin/agentgen`. Set `AGENTGEN_INSTALL=/usr/local/bin` to override.
+
+### Homebrew
+
+```sh
+brew tap Agent-Gen-com/agentgen
+brew install agentgen
+```
+
+### cargo (build from source)
+
+```sh
+cargo install agentgen-cli
+```
+
+### Quick start
+
+```sh
+export AGENTGEN_API_KEY=your_key_here
+agentgen --help
+```
+
+Get your API key at [agent-gen.com](https://www.agent-gen.com).
+
+---
+
 ## What's available
 
 | Package | Language | Location |
