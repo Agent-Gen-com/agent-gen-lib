@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 60">
+  <rect width="60" height="60" rx="10" fill="#6C47FF"/>
+  <!-- Document shape -->
+  <rect x="14" y="10" width="24" height="30" rx="2" fill="white" opacity="0.15"/>
+  <rect x="16" y="12" width="20" height="26" rx="1.5" fill="white" opacity="0.25"/>
+  <!-- Lines representing content -->
+  <rect x="19" y="17" width="14" height="2" rx="1" fill="white" opacity="0.9"/>
+  <rect x="19" y="22" width="11" height="2" rx="1" fill="white" opacity="0.9"/>
+  <rect x="19" y="27" width="13" height="2" rx="1" fill="white" opacity="0.9"/>
+  <!-- "AG" badge -->
+  <circle cx="40" cy="42" r="12" fill="#FF6B6B"/>
+  <text x="40" y="47" font-family="Arial,sans-serif" font-size="11" font-weight="bold" text-anchor="middle" fill="white">AG</text>
+</svg>
