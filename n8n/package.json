@@ -1,6 +1,6 @@
 {
   "name": "n8n-nodes-agentgen",
-  "version": "0.1.1",
+  "version": "0.1.3",
   "description": "n8n community node for AgentGen — HTML to PDF and Image generation",
   "keywords": [
     "n8n-community-node-package",
