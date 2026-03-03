@@ -15,7 +15,7 @@ jobs:
     strategy:
       matrix:
         include:
-          - runner: macos-13
+          - runner: macos-latest
             target: x86_64-apple-darwin
             asset_name: agentgen-x86_64-macos
             use_cross: false
