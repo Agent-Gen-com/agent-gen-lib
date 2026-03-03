@@ -52,15 +52,15 @@ jobs:
 
       - name: Build (cargo)
         if: "!matrix.use_cross"
-        run: cargo build --release --target ${{ matrix.target }} --manifest-path rust/agentgen-cli/Cargo.toml
+        run: cargo build --release --target ${{ matrix.target }} --manifest-path rust/Cargo.toml -p agentgen-cli
 
       - name: Build (cross)
         if: matrix.use_cross
-        run: cross build --release --target ${{ matrix.target }} --manifest-path rust/agentgen-cli/Cargo.toml
+        run: cross build --release --target ${{ matrix.target }} --manifest-path rust/Cargo.toml -p agentgen-cli
 
       - name: Package tarball
         run: |
-          cp rust/agentgen-cli/target/${{ matrix.target }}/release/agentgen agentgen
+          cp rust/target/${{ matrix.target }}/release/agentgen agentgen
           tar czf ${{ matrix.asset_name }}.tar.gz agentgen
 
       - uses: actions/upload-artifact@v4
