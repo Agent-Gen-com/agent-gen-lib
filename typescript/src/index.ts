@@ -14,4 +14,6 @@ export type {
   GeneratePdfResult,
   UploadTempResult,
   BalanceResult,
+  CreateOriginResult,
+  UploadOriginPublicKeyResult,
 } from './types.js';

@@ -10,10 +10,12 @@ import httpx
 from .errors import AgentGenError, InsufficientTokensError
 from .types import (
     BalanceResult,
+    CreateOriginResult,
     GenerateImageOptions,
     GenerateImageResult,
     GeneratePdfResult,
     PdfPage,
+    UploadOriginPublicKeyResult,
     UploadTempResult,
 )
 
@@ -147,6 +149,44 @@ class AgentGenClient:
             _raise_for_error(r)
         return BalanceResult(**r.json())
 
+    def create_origin(self) -> CreateOriginResult:
+        """Provision a new public origin subdomain (``<id>.agent-gen.com``).
+
+        Use this to get a stable origin URL for third-party integrations that
+        require a specific allowed origin (e.g. Tesla virtual key setup).
+        """
+        with httpx.Client() as client:
+            r = client.post(
+                f"{self._base_url}/v1/origin",
+                headers=self._headers,
+            )
+        if not r.is_success:
+            _raise_for_error(r)
+        return CreateOriginResult(**r.json())
+
+    def upload_origin_public_key(
+        self, origin_id: str, pem: str
+    ) -> UploadOriginPublicKeyResult:
+        """Upload an EC public key (PEM) to an origin subdomain.
+
+        The key is stored at the standard Tesla virtual key path:
+        ``/.well-known/appspecific/com.tesla.3p.public-key.pem``.
+
+        Args:
+            origin_id: The origin ID returned by :meth:`create_origin`.
+            pem: Raw PEM text (must start with ``-----BEGIN``).
+        """
+        headers = {**self._headers, "Content-Type": "text/plain"}
+        with httpx.Client() as client:
+            r = client.post(
+                f"{self._base_url}/v1/origin/{origin_id}/public-key",
+                content=pem.encode(),
+                headers=headers,
+            )
+        if not r.is_success:
+            _raise_for_error(r)
+        return UploadOriginPublicKeyResult(**r.json())
+
 
 class AsyncAgentGenClient:
     """Async AgentGen API client (use with ``async``/``await``).
@@ -242,3 +282,41 @@ class AsyncAgentGenClient:
         if not r.is_success:
             _raise_for_error(r)
         return BalanceResult(**r.json())
+
+    async def create_origin(self) -> CreateOriginResult:
+        """Provision a new public origin subdomain (``<id>.agent-gen.com``).
+
+        Use this to get a stable origin URL for third-party integrations that
+        require a specific allowed origin (e.g. Tesla virtual key setup).
+        """
+        async with httpx.AsyncClient() as client:
+            r = await client.post(
+                f"{self._base_url}/v1/origin",
+                headers=self._headers,
+            )
+        if not r.is_success:
+            _raise_for_error(r)
+        return CreateOriginResult(**r.json())
+
+    async def upload_origin_public_key(
+        self, origin_id: str, pem: str
+    ) -> UploadOriginPublicKeyResult:
+        """Upload an EC public key (PEM) to an origin subdomain.
+
+        The key is stored at the standard Tesla virtual key path:
+        ``/.well-known/appspecific/com.tesla.3p.public-key.pem``.
+
+        Args:
+            origin_id: The origin ID returned by :meth:`create_origin`.
+            pem: Raw PEM text (must start with ``-----BEGIN``).
+        """
+        headers = {**self._headers, "Content-Type": "text/plain"}
+        async with httpx.AsyncClient() as client:
+            r = await client.post(
+                f"{self._base_url}/v1/origin/{origin_id}/public-key",
+                content=pem.encode(),
+                headers=headers,
+            )
+        if not r.is_success:
+            _raise_for_error(r)
+        return UploadOriginPublicKeyResult(**r.json())

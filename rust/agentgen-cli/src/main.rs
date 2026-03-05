@@ -10,6 +10,7 @@ use agentgen::{
         GenerateImageRequest, GeneratePdfRequest, ImageFormat, PdfFormat, PdfMargin, PdfPage,
     },
 };
+use std::fs;
 
 // ── CLI definition ────────────────────────────────────────────────────────────
 
@@ -48,6 +49,10 @@ enum Commands {
     Upload(UploadArgs),
     /// Show the current token balance.
     Balance,
+    /// Provision a new public origin subdomain (free).
+    Origin,
+    /// Upload an EC public key (PEM) to an origin subdomain (free).
+    PublicKey(PublicKeyArgs),
 }
 
 #[derive(Args)]
@@ -139,6 +144,15 @@ struct PdfArgs {
 struct UploadArgs {
     /// Path to the file to upload.
     file: PathBuf,
+}
+
+#[derive(Args)]
+struct PublicKeyArgs {
+    /// Origin ID returned by `agentgen origin`.
+    origin_id: String,
+
+    /// Path to the PEM public key file.
+    pem_file: PathBuf,
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -242,6 +256,25 @@ async fn run(command: Commands, client: &AgentGenClient) -> Result<()> {
                 "Token balance:".bold(),
                 b.tokens.to_string().cyan().bold()
             );
+        }
+
+        // ── origin ───────────────────────────────────────────────────────────
+        Commands::Origin => {
+            eprintln!("{}", "Provisioning origin…".dimmed());
+            let r = client.create_origin().await?;
+            println!("{}", "✓ Origin provisioned".green().bold());
+            println!("  {:<14} {}", "ID:".dimmed(), r.id);
+            println!("  {:<14} {}", "Origin URL:".dimmed(), r.origin);
+        }
+
+        // ── public-key ───────────────────────────────────────────────────────
+        Commands::PublicKey(args) => {
+            let pem = fs::read_to_string(&args.pem_file)
+                .with_context(|| format!("failed to read {}", args.pem_file.display()))?;
+            eprintln!("{}", "Uploading public key…".dimmed());
+            let r = client.upload_origin_public_key(&args.origin_id, &pem).await?;
+            println!("{}", "✓ Public key uploaded".green().bold());
+            println!("  {:<14} {}", "URL:".dimmed(), r.url);
         }
 
         // ── upload ───────────────────────────────────────────────────────────

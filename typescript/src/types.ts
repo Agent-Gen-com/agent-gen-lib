@@ -71,3 +71,15 @@ export interface UploadTempResult {
 export interface BalanceResult {
   tokens: number;
 }
+
+export interface CreateOriginResult {
+  /** Unique origin ID, used in the subdomain. */
+  id: string;
+  /** Full origin URL, e.g. `https://abc123xyz.agent-gen.com`. */
+  origin: string;
+}
+
+export interface UploadOriginPublicKeyResult {
+  /** Public URL where the PEM key is now accessible. */
+  url: string;
+}

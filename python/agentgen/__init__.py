@@ -20,6 +20,7 @@ from .client import AgentGenClient, AsyncAgentGenClient
 from .errors import AgentGenError, InsufficientTokensError
 from .types import (
     BalanceResult,
+    CreateOriginResult,
     GenerateImageOptions,
     GenerateImageResult,
     GeneratePdfResult,
@@ -27,6 +28,7 @@ from .types import (
     PdfFormat,
     PdfMargin,
     PdfPage,
+    UploadOriginPublicKeyResult,
     UploadTempResult,
 )
 
@@ -43,6 +45,8 @@ __all__ = [
     "GeneratePdfResult",
     "UploadTempResult",
     "BalanceResult",
+    "CreateOriginResult",
+    "UploadOriginPublicKeyResult",
     # Literals
     "ImageFormat",
     "PdfFormat",

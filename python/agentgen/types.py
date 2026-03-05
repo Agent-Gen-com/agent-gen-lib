@@ -81,3 +81,17 @@ class UploadTempResult:
 @dataclasses.dataclass
 class BalanceResult:
     tokens: int
+
+
+@dataclasses.dataclass
+class CreateOriginResult:
+    id: str
+    """Unique origin ID, used in the subdomain."""
+    origin: str
+    """Full origin URL, e.g. https://abc123xyz.agent-gen.com."""
+
+
+@dataclasses.dataclass
+class UploadOriginPublicKeyResult:
+    url: str
+    """Public URL where the PEM key is now accessible."""

@@ -205,6 +205,32 @@ console.log(`You have ${tokens} tokens remaining.`);
 
 ---
 
+### `createOrigin()` → `Promise<CreateOriginResult>`
+
+Provisions a new public subdomain (`<id>.agent-gen.com`) for hosting files. Use this to obtain a stable origin URL for third-party integrations that require a specific allowed origin (e.g. Tesla virtual key setup).
+
+```ts
+const { id, origin } = await client.createOrigin();
+console.log(origin); // https://abc123xyz.agent-gen.com
+```
+
+---
+
+### `uploadOriginPublicKey(originId, pem)` → `Promise<UploadOriginPublicKeyResult>`
+
+Uploads an EC public key (PEM format) to an origin subdomain. The key is stored at the standard Tesla virtual key path `/.well-known/appspecific/com.tesla.3p.public-key.pem`.
+
+```ts
+import { readFileSync } from 'fs';
+
+const { id } = await client.createOrigin();
+const pem = readFileSync('./public-key.pem', 'utf8');
+const { url } = await client.uploadOriginPublicKey(id, pem);
+console.log(url); // https://abc123xyz.agent-gen.com/.well-known/appspecific/com.tesla.3p.public-key.pem
+```
+
+---
+
 ## Error handling
 
 All methods throw on non-2xx responses. Import the error classes to handle specific cases:
@@ -272,6 +298,8 @@ import type {
   GeneratePdfResult,
   UploadTempResult,
   BalanceResult,
+  CreateOriginResult,
+  UploadOriginPublicKeyResult,
 
   // Enums
   ImageFormat,  // 'png' | 'jpeg' | 'webp'
@@ -299,5 +327,7 @@ npm run build   # outputs to dist/
 | Generate PDF (per page) | 2 tokens |
 | Upload temp file | Free |
 | Check balance | Free |
+| Create origin | Free |
+| Upload origin public key | Free |
 
 Purchase tokens at [agent-gen.com](https://www.agent-gen.com).

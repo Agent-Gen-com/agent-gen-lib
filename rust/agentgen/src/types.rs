@@ -217,3 +217,21 @@ pub struct UploadTempResponse {
 pub struct BalanceResponse {
     pub tokens: i64,
 }
+
+// ── Origin ───────────────────────────────────────────────────────────────────
+
+/// Response from `POST /v1/origin`.
+#[derive(Debug, Clone, Deserialize)]
+pub struct CreateOriginResponse {
+    /// Unique origin ID, used in the subdomain.
+    pub id: String,
+    /// Full origin URL, e.g. `https://abc123xyz.agent-gen.com`.
+    pub origin: String,
+}
+
+/// Response from `POST /v1/origin/{id}/public-key`.
+#[derive(Debug, Clone, Deserialize)]
+pub struct UploadOriginPublicKeyResponse {
+    /// Public URL where the PEM key is now accessible.
+    pub url: String,
+}

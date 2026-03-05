@@ -212,6 +212,35 @@ print(f"You have {balance.tokens} tokens remaining.")
 
 ---
 
+### `create_origin()` → `CreateOriginResult`
+
+Provisions a new public subdomain (`<id>.agent-gen.com`) for hosting files. Use this to obtain a stable origin URL for third-party integrations that require a specific allowed origin (e.g. Tesla virtual key setup).
+
+```python
+result = client.create_origin()
+print(result.id)      # "abc123xyz"
+print(result.origin)  # "https://abc123xyz.agent-gen.com"
+```
+
+---
+
+### `upload_origin_public_key(origin_id, pem)` → `UploadOriginPublicKeyResult`
+
+Uploads an EC public key (PEM format) to an origin subdomain. The key is stored at the standard Tesla virtual key path `/.well-known/appspecific/com.tesla.3p.public-key.pem`.
+
+```python
+result = client.create_origin()
+
+with open("public-key.pem") as f:
+    pem = f.read()
+
+key_result = client.upload_origin_public_key(result.id, pem)
+print(key_result.url)
+# https://abc123xyz.agent-gen.com/.well-known/appspecific/com.tesla.3p.public-key.pem
+```
+
+---
+
 ## Async usage
 
 Every method above works identically with `AsyncAgentGenClient`. Just `await` each call:
@@ -306,6 +335,8 @@ from agentgen import (
     GeneratePdfResult,
     UploadTempResult,
     BalanceResult,
+    CreateOriginResult,
+    UploadOriginPublicKeyResult,
 
     # Literal type aliases
     ImageFormat,   # Literal["png", "jpeg", "webp"]
@@ -353,5 +384,7 @@ All fields are `str | None` and accept any CSS length value (e.g. `"20mm"`, `"1i
 | Generate PDF (per page) | 2 tokens |
 | Upload temp file | Free |
 | Check balance | Free |
+| Create origin | Free |
+| Upload origin public key | Free |
 
 Purchase tokens at [agent-gen.com](https://www.agent-gen.com).

@@ -1,9 +1,11 @@
 import type {
   BalanceResult,
+  CreateOriginResult,
   GenerateImageOptions,
   GenerateImageResult,
   GeneratePdfOptions,
   GeneratePdfResult,
+  UploadOriginPublicKeyResult,
   UploadTempResult,
 } from './types.js';
 import { AgentGenError, InsufficientTokensError } from './errors.js';
@@ -114,5 +116,53 @@ export class AgentGenClient {
    */
   getBalance(): Promise<BalanceResult> {
     return this.request('GET', '/v1/balance');
+  }
+
+  /**
+   * Provision a new public origin subdomain (`<id>.agent-gen.com`) for hosting files.
+   * Use this to obtain a stable origin URL for third-party integrations that require
+   * a specific allowed origin (e.g. Tesla virtual key setup).
+   */
+  createOrigin(): Promise<CreateOriginResult> {
+    return this.request('POST', '/v1/origin');
+  }
+
+  /**
+   * Upload an EC public key (PEM format) to an origin subdomain.
+   * The key is stored at the standard Tesla virtual key path:
+   * `/.well-known/appspecific/com.tesla.3p.public-key.pem`.
+   *
+   * @param originId The origin ID returned by `createOrigin()`.
+   * @param pem Raw PEM text (must start with `-----BEGIN`).
+   */
+  uploadOriginPublicKey(originId: string, pem: string): Promise<UploadOriginPublicKeyResult> {
+    const headers: Record<string, string> = {
+      'X-API-Key': this.apiKey,
+      'Content-Type': 'text/plain',
+    };
+    return fetch(`${this.baseUrl}/v1/origin/${originId}/public-key`, {
+      method: 'POST',
+      headers,
+      body: pem,
+    }).then(async (res) => {
+      const data = (await res.json()) as Record<string, unknown>;
+      if (!res.ok) {
+        if (res.status === 402) {
+          throw new InsufficientTokensError(
+            data['error'] as string,
+            data['balance'] as number,
+            data['required'] as number,
+            data['buy_more_url'] as string,
+          );
+        }
+        throw new AgentGenError(
+          data['error'] as string,
+          res.status,
+          data['detail'] as string | undefined,
+          data['details'] as Record<string, unknown> | undefined,
+        );
+      }
+      return data as unknown as UploadOriginPublicKeyResult;
+    });
   }
 }

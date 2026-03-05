@@ -5,8 +5,8 @@ use serde_json::Value;
 
 use crate::error::AgentGenError;
 use crate::types::{
-    BalanceResponse, GenerateImageRequest, GenerateImageResponse, GeneratePdfRequest,
-    GeneratePdfResponse, UploadTempResponse,
+    BalanceResponse, CreateOriginResponse, GenerateImageRequest, GenerateImageResponse,
+    GeneratePdfRequest, GeneratePdfResponse, UploadOriginPublicKeyResponse, UploadTempResponse,
 };
 
 const DEFAULT_BASE_URL: &str = "https://www.agent-gen.com/api";
@@ -152,6 +152,44 @@ impl AgentGenClient {
             .http
             .get(format!("{}/v1/balance", self.base_url))
             .header("X-API-Key", &self.api_key)
+            .send()
+            .await?;
+        self.handle_response(response).await
+    }
+
+    /// Provision a new public origin subdomain (`<id>.agent-gen.com`).
+    ///
+    /// Use this to get a stable origin URL for third-party integrations that
+    /// require a specific allowed origin (e.g. Tesla virtual key setup).
+    pub async fn create_origin(&self) -> Result<CreateOriginResponse, AgentGenError> {
+        let response = self
+            .http
+            .post(format!("{}/v1/origin", self.base_url))
+            .header("X-API-Key", &self.api_key)
+            .send()
+            .await?;
+        self.handle_response(response).await
+    }
+
+    /// Upload an EC public key (PEM format) to an origin subdomain.
+    ///
+    /// The key is stored at the standard Tesla virtual key path:
+    /// `/.well-known/appspecific/com.tesla.3p.public-key.pem`.
+    ///
+    /// # Arguments
+    /// * `origin_id` — The origin ID returned by [`create_origin`](Self::create_origin).
+    /// * `pem` — Raw PEM text (must start with `-----BEGIN`).
+    pub async fn upload_origin_public_key(
+        &self,
+        origin_id: &str,
+        pem: &str,
+    ) -> Result<UploadOriginPublicKeyResponse, AgentGenError> {
+        let response = self
+            .http
+            .post(format!("{}/v1/origin/{}/public-key", self.base_url, origin_id))
+            .header("X-API-Key", &self.api_key)
+            .header("Content-Type", "text/plain")
+            .body(pem.to_string())
             .send()
             .await?;
         self.handle_response(response).await
