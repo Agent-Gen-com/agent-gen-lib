@@ -38,8 +38,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let image = client
         .generate_image(
             GenerateImageRequest::new("<h1 style='font-family:sans-serif'>Hello!</h1>")
-                .width(1200)
-                .height(630)
+                .viewport_width(1200)
                 .format(ImageFormat::Png),
         )
         .await?;
@@ -89,8 +88,9 @@ use agentgen::types::{GenerateImageRequest, ImageFormat};
 let result = client
     .generate_image(
         GenerateImageRequest::new("<div style='background:#6366f1;color:#fff;padding:40px'>Hello</div>")
-            .width(1200)               // default: 1200
-            .height(630)               // default: 630
+            .viewport_width(1200)      // default: 1200
+            .viewport_height(800)      // default: 800
+            .selector("#card")         // optional CSS selector to capture
             .format(ImageFormat::Png)  // Png | Jpeg | Webp, default Png
             .device_scale_factor(2.0), // 1.0–3.0, default 2.0
     )
@@ -114,7 +114,7 @@ Pass a `GeneratePdfRequest` — either `SinglePage(PdfPage)` for one page, or `M
 #### Single-page PDF
 
 ```rust
-use agentgen::types::{GeneratePdfRequest, PdfPage, PdfFormat, PdfMargin};
+use agentgen::types::{GeneratePdfRequest, PdfPage, PdfFormat, PdfMargin, PdfPageSizeSource};
 
 let result = client
     .generate_pdf(GeneratePdfRequest::SinglePage(
@@ -126,6 +126,7 @@ let result = client
               </body>
             </html>
         "#)
+        .page_size_source(PdfPageSizeSource::Css)
         .format(PdfFormat::A4)        // A4 | Letter | A3 | Legal
         .landscape(false)             // default false
         .print_background(true)       // default true
@@ -159,11 +160,14 @@ let result = client
     .generate_pdf(GeneratePdfRequest::MultiPage {
         pages: vec![
             PdfPage::new("<h1 style='padding:40px'>Page 1 — Cover</h1>")
+                .page_size_source(PdfPageSizeSource::Css)
                 .format(PdfFormat::A4),
             PdfPage::new("<h1 style='padding:40px'>Page 2 — Content</h1>")
+                .page_size_source(PdfPageSizeSource::Css)
                 .format(PdfFormat::A4)
                 .landscape(true),
             PdfPage::new("<h1 style='padding:40px'>Page 3 — Appendix</h1>")
+                .page_size_source(PdfPageSizeSource::Css)
                 .format(PdfFormat::A4)
                 .margin(PdfMargin::all("10mm")),
         ],
@@ -263,6 +267,7 @@ use agentgen::types::{
     PdfPage,
     PdfMargin,
     PdfFormat,          // A4 | Letter | A3 | Legal
+    PdfPageSizeSource,  // Css | Format
 
     // Upload
     UploadTempResponse,
@@ -324,8 +329,9 @@ Render HTML to an image (PNG / JPEG / WebP). **Costs 1 token.**
 
 ```
 agentgen image (--html <string> | --file <path>)
-               [--width <px>]
-               [--height <px>]
+               [--viewport-width <px>]
+               [--viewport-height <px>]
+               [--selector <css>]
                [--format png|jpeg|webp]
                [--scale <1-3>]
                [--output <path>]
@@ -335,20 +341,21 @@ agentgen image (--html <string> | --file <path>)
 
 ```bash
 agentgen image --html '<h1 style="font-family:sans-serif">Hello!</h1>' \
-               --width 1200 --height 630
+               --viewport-width 1200
 ```
 
 **From a file:**
 
 ```bash
-agentgen image --file ./template.html --width 1200 --height 630 --format png
+agentgen image --file ./template.html --viewport-width 1200 --format png
 ```
 
 **Download the result locally:**
 
 ```bash
 agentgen image --file ./og-template.html \
-               --width 1200 --height 630 \
+               --viewport-width 1200 \
+               --selector '#card' \
                --output og-image.png
 ```
 
@@ -370,8 +377,9 @@ agentgen image --file ./og-template.html \
 |------|---------|-------------|
 | `--html <string>` | — | Inline HTML string to render |
 | `--file <path>` | — | Read HTML from a file (mutually exclusive with `--html`) |
-| `--width <px>` | 1200 | Viewport width in pixels |
-| `--height <px>` | 630 | Viewport height in pixels |
+| `--viewport-width <px>` | 1200 | Viewport width in pixels used for layout before capture |
+| `--viewport-height <px>` | 800 | Viewport height in pixels used for layout before capture |
+| `--selector <css>` | — | Capture a specific element instead of the full rendered document |
 | `--format` | `png` | Output format: `png`, `jpeg`, or `webp` |
 | `--scale <n>` | 2 | Device pixel ratio (1–3) |
 | `--output / -o <path>` | — | Download the generated image to this path |
@@ -384,6 +392,7 @@ Render HTML to a PDF. **Costs 2 tokens per page.**
 
 ```
 agentgen pdf (--html <string> | --file <path> | --pages <file1> <file2> …)
+             [--page-size-source css|format]
              [--format A4|Letter|A3|Legal]
              [--landscape]
              [--print-background]
@@ -396,6 +405,7 @@ agentgen pdf (--html <string> | --file <path> | --pages <file1> <file2> …)
 
 ```bash
 agentgen pdf --html '<h1>Invoice #42</h1>' \
+             --page-size-source css \
              --format A4 \
              --margin-top 20mm --margin-bottom 20mm \
              --output invoice.pdf
@@ -405,6 +415,7 @@ agentgen pdf --html '<h1>Invoice #42</h1>' \
 
 ```bash
 agentgen pdf --file ./invoice.html \
+             --page-size-source css \
              --format A4 \
              --print-background \
              --output invoice.pdf
@@ -414,6 +425,7 @@ agentgen pdf --file ./invoice.html \
 
 ```bash
 agentgen pdf --pages cover.html content.html appendix.html \
+             --page-size-source css \
              --format A4 \
              --output report.pdf
 ```
@@ -438,7 +450,8 @@ Each file in `--pages` becomes one independent page. All pages share the same `-
 | `--html <string>` | — | Inline HTML for a single-page PDF |
 | `--file <path>` | — | Read HTML from a file (single-page) |
 | `--pages <files…>` | — | Multiple HTML files — one per page |
-| `--format` | `A4` | Paper size: `A4`, `Letter`, `A3`, `Legal` |
+| `--page-size-source` | `css` | Prefer CSS `@page` size or fallback format |
+| `--format` | `A4` | Fallback paper size: `A4`, `Letter`, `A3`, `Legal` |
 | `--landscape` | off | Landscape orientation |
 | `--print-background` | off | Render CSS backgrounds |
 | `--margin-top <value>` | — | Top margin (CSS length, e.g. `20mm`) |

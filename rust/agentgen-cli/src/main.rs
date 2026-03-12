@@ -8,6 +8,7 @@ use agentgen::{
     AgentGenClient,
     types::{
         GenerateImageRequest, GeneratePdfRequest, ImageFormat, PdfFormat, PdfMargin, PdfPage,
+        PdfPageSizeSource,
     },
 };
 use std::fs;
@@ -72,13 +73,17 @@ struct ImageArgs {
     #[command(flatten)]
     source: HtmlSource,
 
-    /// Viewport width in pixels (default 1200).
+    /// Viewport width in pixels used for layout before capture (default 1200).
     #[arg(long)]
-    width: Option<u32>,
+    viewport_width: Option<u32>,
 
-    /// Viewport height in pixels (default 630).
+    /// Viewport height in pixels used for layout before capture (default 800).
     #[arg(long)]
-    height: Option<u32>,
+    viewport_height: Option<u32>,
+
+    /// Optional CSS selector to capture instead of the full rendered document.
+    #[arg(long)]
+    selector: Option<String>,
 
     /// Output format: png | jpeg | webp (default png).
     #[arg(long, default_value = "png")]
@@ -110,6 +115,10 @@ struct PdfArgs {
     /// Paper format: A4 | Letter | A3 | Legal (default A4).
     #[arg(long)]
     format: Option<String>,
+
+    /// Page sizing mode: css | format (default css).
+    #[arg(long)]
+    page_size_source: Option<String>,
 
     /// Landscape orientation.
     #[arg(long)]
@@ -186,9 +195,18 @@ fn parse_pdf_format(s: &str) -> Option<PdfFormat> {
     }
 }
 
+fn parse_page_size_source(s: &str) -> Option<PdfPageSizeSource> {
+    match s.to_lowercase().as_str() {
+        "css" => Some(PdfPageSizeSource::Css),
+        "format" => Some(PdfPageSizeSource::Format),
+        _ => None,
+    }
+}
+
 fn build_page(
     html: String,
     format: Option<&str>,
+    page_size_source: Option<&str>,
     landscape: bool,
     print_background: bool,
     margin_top: Option<String>,
@@ -197,6 +215,9 @@ fn build_page(
     margin_right: Option<String>,
 ) -> PdfPage {
     let mut page = PdfPage::new(html);
+    if let Some(source) = page_size_source.and_then(parse_page_size_source) {
+        page = page.page_size_source(source);
+    }
     if let Some(fmt) = format.and_then(parse_pdf_format) {
         page = page.format(fmt);
     }
@@ -293,11 +314,14 @@ async fn run(command: Commands, client: &AgentGenClient) -> Result<()> {
             let html = read_html(args.source.html, args.source.file)?;
             let mut req = GenerateImageRequest::new(html)
                 .format(parse_image_format(&args.format));
-            if let Some(w) = args.width {
-                req = req.width(w);
+            if let Some(w) = args.viewport_width {
+                req = req.viewport_width(w);
             }
-            if let Some(h) = args.height {
-                req = req.height(h);
+            if let Some(h) = args.viewport_height {
+                req = req.viewport_height(h);
+            }
+            if let Some(selector) = args.selector {
+                req = req.selector(selector);
             }
             if let Some(s) = args.scale {
                 req = req.device_scale_factor(s);
@@ -343,6 +367,7 @@ async fn run(command: Commands, client: &AgentGenClient) -> Result<()> {
                     pages.push(build_page(
                         html,
                         fmt,
+                        args.page_size_source.as_deref(),
                         args.landscape,
                         args.print_background,
                         args.margin_top.clone(),
@@ -357,6 +382,7 @@ async fn run(command: Commands, client: &AgentGenClient) -> Result<()> {
                 let page = build_page(
                     html,
                     fmt,
+                    args.page_size_source.as_deref(),
                     args.landscape,
                     args.print_background,
                     args.margin_top,

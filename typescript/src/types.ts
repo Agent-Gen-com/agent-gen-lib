@@ -4,10 +4,12 @@ export type PdfFormat = 'A4' | 'Letter' | 'A3' | 'Legal';
 export interface GenerateImageOptions {
   /** HTML content to render (max 500 KB). */
   html: string;
-  /** Viewport width in px (1–5000, default 1200). */
-  width?: number;
-  /** Viewport height in px (1–5000, default 630). */
-  height?: number;
+  /** Viewport width in px used for layout before capture (1–5000, default 1200). */
+  viewport_width?: number;
+  /** Viewport height in px used for layout before capture (1–5000, default 800). */
+  viewport_height?: number;
+  /** Optional CSS selector to capture instead of the full rendered document. */
+  selector?: string;
   /** Output image format (default "png"). */
   format?: ImageFormat;
   /** Device pixel ratio (1–3, default 2). */
@@ -33,12 +35,10 @@ export interface PdfMargin {
 export interface PdfPage {
   /** HTML content to render (max 500 KB). */
   html: string;
-  /** Paper format (default "A4"). */
+  /** Whether to prefer CSS @page size or fallback format (default "css"). */
+  page_size_source?: 'css' | 'format';
+  /** Fallback paper format when CSS does not define one (default "A4"). */
   format?: PdfFormat;
-  /** Custom page width, e.g. "8.5in" (overrides format). */
-  width?: string;
-  /** Custom page height, e.g. "11in" (overrides format). */
-  height?: string;
   /** Landscape orientation (default false). */
   landscape?: boolean;
   /** Page margins. */

@@ -28,8 +28,7 @@ client = AgentGenClient(api_key="agk_...")
 # Render HTML to a PNG image
 image = client.generate_image(GenerateImageOptions(
     html="<h1 style='font-family:sans-serif'>Hello, world!</h1>",
-    width=1200,
-    height=630,
+    viewport_width=1200,
 ))
 print(image.url)  # https://…/output.png
 
@@ -86,8 +85,9 @@ from agentgen import GenerateImageOptions
 
 result = client.generate_image(GenerateImageOptions(
     html="<div style='background:#6366f1;color:#fff;padding:40px'>Hello</div>",
-    width=1200,             # px, default 1200
-    height=630,             # px, default 630
+    viewport_width=1200,    # px, default 1200
+    viewport_height=800,    # px, default 800
+    selector="#card",       # optional CSS selector to capture
     format="png",           # "png" | "jpeg" | "webp", default "png"
     device_scale_factor=2,  # 1–3, default 2 (retina-quality)
 ))
@@ -124,6 +124,7 @@ result = client.generate_pdf(PdfPage(
       </body>
     </html>
     """,
+    page_size_source="css", # prefer CSS @page size, fallback to format
     format="A4",            # "A4" | "Letter" | "A3" | "Legal"
     landscape=False,        # default False
     print_background=True,  # default True
@@ -149,10 +150,12 @@ Pass a list of `PdfPage` objects — each entry is an independent page with its 
 result = client.generate_pdf([
     PdfPage(
         html="<h1 style='padding:40px'>Page 1 — Cover</h1>",
+        page_size_source="css",
         format="A4",
     ),
     PdfPage(
         html="<h1 style='padding:40px'>Page 2 — Content</h1>",
+        page_size_source="css",
         format="A4",
         landscape=True,
     ),
@@ -186,8 +189,7 @@ print(upload.expires_at)  # ISO 8601 expiry timestamp
 # Now embed the URL in your HTML
 result = client.generate_image(GenerateImageOptions(
     html=f'<img src="{upload.url}" style="width:200px" />',
-    width=400,
-    height=200,
+    viewport_width=400,
 ))
 ```
 
@@ -255,8 +257,7 @@ async def main():
     # Run both requests concurrently
     image_coro = client.generate_image(GenerateImageOptions(
         html="<h1>OG Image</h1>",
-        width=1200,
-        height=630,
+        viewport_width=1200,
     ))
     pdf_coro = client.generate_pdf(PdfPage(
         html="<h1>Report</h1>",
@@ -353,8 +354,9 @@ from agentgen import (
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
 | `html` | `str` | **required** | HTML to render (max 500 KB) |
-| `width` | `int \| None` | 1200 | Viewport width in px (1–5000) |
-| `height` | `int \| None` | 630 | Viewport height in px (1–5000) |
+| `viewport_width` | `int \| None` | 1200 | Viewport width in px used for layout before capture (1–5000) |
+| `viewport_height` | `int \| None` | 800 | Viewport height in px used for layout before capture (1–5000) |
+| `selector` | `str \| None` | — | Optional CSS selector to capture instead of the full rendered document |
 | `format` | `ImageFormat \| None` | `"png"` | Output format |
 | `device_scale_factor` | `float \| None` | 2.0 | Device pixel ratio (1–3) |
 
@@ -363,9 +365,8 @@ from agentgen import (
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
 | `html` | `str` | **required** | HTML to render (max 500 KB) |
-| `format` | `PdfFormat \| None` | `"A4"` | Paper size |
-| `width` | `str \| None` | — | Custom width, e.g. `"8.5in"` |
-| `height` | `str \| None` | — | Custom height, e.g. `"11in"` |
+| `page_size_source` | `"css" \| "format" \| None` | `"css"` | Prefer CSS `@page` size or fallback format |
+| `format` | `PdfFormat \| None` | `"A4"` | Fallback paper size |
 | `landscape` | `bool \| None` | `False` | Landscape orientation |
 | `margin` | `PdfMargin \| None` | — | Page margins |
 | `print_background` | `bool \| None` | `True` | Render CSS backgrounds |

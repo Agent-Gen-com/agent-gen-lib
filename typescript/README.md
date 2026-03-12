@@ -33,8 +33,7 @@ const client = new AgentGenClient({ apiKey: process.env.AGENTGEN_API_KEY! });
 // Render HTML to a PNG image
 const image = await client.generateImage({
   html: '<h1 style="font-family: sans-serif;">Hello, world!</h1>',
-  width: 1200,
-  height: 630,
+  viewport_width: 1200,
 });
 console.log(image.url); // https://…/output.png
 
@@ -74,8 +73,9 @@ Renders an HTML string to a screenshot image. **Costs 1 token.**
 ```ts
 const result = await client.generateImage({
   html: '<div style="background:#6366f1;color:#fff;padding:40px">Hello</div>',
-  width: 1200,          // px, default 1200
-  height: 630,          // px, default 630
+  viewport_width: 1200, // px, default 1200
+  viewport_height: 800, // px, default 800
+  selector: '#card',    // optional CSS selector to capture
   format: 'png',        // 'png' | 'jpeg' | 'webp', default 'png'
   device_scale_factor: 2, // 1–3, default 2 (retina-quality)
 });
@@ -108,6 +108,7 @@ const result = await client.generatePdf({
       </body>
     </html>
   `,
+  page_size_source: 'css', // prefer CSS @page size, fallback to format
   format: 'A4',            // 'A4' | 'Letter' | 'A3' | 'Legal', default 'A4'
   landscape: false,        // default false
   print_background: true,  // default true
@@ -134,10 +135,12 @@ const result = await client.generatePdf({
   pages: [
     {
       html: '<h1 style="padding:40px">Page 1 — Cover</h1>',
+      page_size_source: 'css',
       format: 'A4',
     },
     {
       html: '<h1 style="padding:40px">Page 2 — Content</h1>',
+      page_size_source: 'css',
       format: 'A4',
       landscape: true,
     },
@@ -177,8 +180,7 @@ console.log(upload.expires_at); // ISO 8601 expiry timestamp
 // Now use upload.url inside your HTML
 const image = await client.generateImage({
   html: `<img src="${upload.url}" style="width:200px" />`,
-  width: 400,
-  height: 200,
+  viewport_width: 400,
 });
 ```
 

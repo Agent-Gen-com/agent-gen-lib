@@ -24,8 +24,7 @@ const DEFAULT_BASE_URL: &str = "https://www.agent-gen.com/api";
 ///     let result = client
 ///         .generate_image(
 ///             GenerateImageRequest::new("<h1>Hello</h1>")
-///                 .width(1200)
-///                 .height(630)
+///                 .viewport_width(1200)
 ///                 .format(ImageFormat::Png),
 ///         )
 ///         .await?;

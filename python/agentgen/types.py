@@ -13,10 +13,12 @@ class GenerateImageOptions:
 
     html: str
     """HTML content to render (max 500 KB)."""
-    width: Optional[int] = None
-    """Viewport width in px (1–5000, default 1200)."""
-    height: Optional[int] = None
-    """Viewport height in px (1–5000, default 630)."""
+    viewport_width: Optional[int] = None
+    """Viewport width in px used for layout before capture (1–5000, default 1200)."""
+    viewport_height: Optional[int] = None
+    """Viewport height in px used for layout before capture (1–5000, default 800)."""
+    selector: Optional[str] = None
+    """Optional CSS selector to capture instead of the full rendered document."""
     format: Optional[ImageFormat] = None
     """Output format: "png" | "jpeg" | "webp" (default "png")."""
     device_scale_factor: Optional[float] = None
@@ -47,12 +49,10 @@ class PdfPage:
 
     html: str
     """HTML content to render (max 500 KB)."""
+    page_size_source: Optional[Literal["css", "format"]] = None
+    """Prefer CSS @page size or the fallback format (default "css")."""
     format: Optional[PdfFormat] = None
-    """Paper size: "A4" | "Letter" | "A3" | "Legal" (default "A4")."""
-    width: Optional[str] = None
-    """Custom page width, e.g. "8.5in" (overrides format)."""
-    height: Optional[str] = None
-    """Custom page height, e.g. "11in"."""
+    """Fallback paper size: "A4" | "Letter" | "A3" | "Legal" (default "A4")."""
     landscape: Optional[bool] = None
     """Landscape orientation (default False)."""
     margin: Optional[PdfMargin] = None

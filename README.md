@@ -70,8 +70,9 @@ All endpoints are authenticated with an `X-API-Key` header. Get your key at [age
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
 | `html` | string | **required** | HTML to render (max 500 KB) |
-| `width` | integer | 1200 | Viewport width in px (1–5000) |
-| `height` | integer | 630 | Viewport height in px (1–5000) |
+| `viewport_width` | integer | 1200 | Viewport width in px used for layout before capture (1–5000) |
+| `viewport_height` | integer | 800 | Viewport height in px used for layout before capture (1–5000) |
+| `selector` | string | — | Optional CSS selector to capture instead of the full rendered document |
 | `format` | `png` \| `jpeg` \| `webp` | `png` | Output format |
 | `device_scale_factor` | number | 2 | Device pixel ratio (1–3) |
 
@@ -81,7 +82,8 @@ All endpoints are authenticated with an `X-API-Key` header. Get your key at [age
 |-------|------|---------|-------------|
 | `html` | string | **required** | HTML for a single-page PDF |
 | `pages` | array | — | Array of page objects for multi-page PDFs |
-| `format` | `A4` \| `Letter` \| `A3` \| `Legal` | `A4` | Paper size |
+| `page_size_source` | `css` \| `format` | `css` | Prefer CSS `@page` size or fallback format |
+| `format` | `A4` \| `Letter` \| `A3` \| `Legal` | `A4` | Fallback paper size |
 | `landscape` | boolean | false | Landscape orientation |
 | `margin` | object | — | `{ top, bottom, left, right }` — CSS length strings, e.g. `"20mm"` |
 | `print_background` | boolean | true | Whether to render CSS backgrounds |

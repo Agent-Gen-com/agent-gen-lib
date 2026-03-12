@@ -17,8 +17,8 @@ pub enum ImageFormat {
 /// use agentgen::types::{GenerateImageRequest, ImageFormat};
 ///
 /// let req = GenerateImageRequest::new("<h1>Hello</h1>")
-///     .width(1200)
-///     .height(630)
+///     .viewport_width(1200)
+///     .viewport_height(800)
 ///     .format(ImageFormat::Png)
 ///     .device_scale_factor(2.0);
 /// ```
@@ -26,9 +26,11 @@ pub enum ImageFormat {
 pub struct GenerateImageRequest {
     pub html: String,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub width: Option<u32>,
+    pub viewport_width: Option<u32>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub height: Option<u32>,
+    pub viewport_height: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub selector: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub format: Option<ImageFormat>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -39,20 +41,26 @@ impl GenerateImageRequest {
     pub fn new(html: impl Into<String>) -> Self {
         Self {
             html: html.into(),
-            width: None,
-            height: None,
+            viewport_width: None,
+            viewport_height: None,
+            selector: None,
             format: None,
             device_scale_factor: None,
         }
     }
 
-    pub fn width(mut self, width: u32) -> Self {
-        self.width = Some(width);
+    pub fn viewport_width(mut self, width: u32) -> Self {
+        self.viewport_width = Some(width);
         self
     }
 
-    pub fn height(mut self, height: u32) -> Self {
-        self.height = Some(height);
+    pub fn viewport_height(mut self, height: u32) -> Self {
+        self.viewport_height = Some(height);
+        self
+    }
+
+    pub fn selector(mut self, selector: impl Into<String>) -> Self {
+        self.selector = Some(selector.into());
         self
     }
 
@@ -88,6 +96,13 @@ pub enum PdfFormat {
     Legal,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum PdfPageSizeSource {
+    Css,
+    Format,
+}
+
 /// Page margins for a PDF page.
 #[derive(Debug, Clone, Default, Serialize)]
 pub struct PdfMargin {
@@ -117,9 +132,10 @@ impl PdfMargin {
 ///
 /// Build with [`PdfPage::new`]:
 /// ```
-/// use agentgen::types::{PdfPage, PdfFormat, PdfMargin};
+/// use agentgen::types::{PdfPage, PdfFormat, PdfMargin, PdfPageSizeSource};
 ///
 /// let page = PdfPage::new("<h1>Invoice</h1>")
+///     .page_size_source(PdfPageSizeSource::Css)
 ///     .format(PdfFormat::A4)
 ///     .print_background(true)
 ///     .margin(PdfMargin::all("20mm"));
@@ -128,11 +144,9 @@ impl PdfMargin {
 pub struct PdfPage {
     pub html: String,
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub page_size_source: Option<PdfPageSizeSource>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub format: Option<PdfFormat>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub width: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub height: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub landscape: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -145,23 +159,21 @@ impl PdfPage {
     pub fn new(html: impl Into<String>) -> Self {
         Self {
             html: html.into(),
+            page_size_source: None,
             format: None,
-            width: None,
-            height: None,
             landscape: None,
             margin: None,
             print_background: None,
         }
     }
 
-    pub fn format(mut self, format: PdfFormat) -> Self {
-        self.format = Some(format);
+    pub fn page_size_source(mut self, page_size_source: PdfPageSizeSource) -> Self {
+        self.page_size_source = Some(page_size_source);
         self
     }
 
-    pub fn custom_size(mut self, width: impl Into<String>, height: impl Into<String>) -> Self {
-        self.width = Some(width.into());
-        self.height = Some(height.into());
+    pub fn format(mut self, format: PdfFormat) -> Self {
+        self.format = Some(format);
         self
     }
 
