@@ -109,6 +109,7 @@ Only `html` is required — all other fields default to `None` (server applies d
 Renders HTML to a PDF document. **Costs 2 tokens per page.**
 
 Pass a single `PdfPage` object for a one-page PDF, or a **list** of `PdfPage` objects for a multi-page PDF.
+Set `optimize=False` to preserve the original Chromium output instead of the smaller post-processed PDF.
 
 #### Single-page PDF
 
@@ -134,7 +135,7 @@ result = client.generate_pdf(PdfPage(
         left="15mm",
         right="15mm",
     ),
-))
+), optimize=True)
 
 print(result.url)          # public URL pointing to the PDF
 print(result.pages)        # number of pages generated
@@ -164,7 +165,7 @@ result = client.generate_pdf([
         format="A4",
         margin=PdfMargin(top="10mm", bottom="10mm", left="10mm", right="10mm"),
     ),
-])
+], optimize=True)
 
 print(f"Generated {result.pages} pages, used {result.tokens_used} tokens")
 ```

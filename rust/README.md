@@ -47,11 +47,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Render HTML to a PDF
     let pdf = client
-        .generate_pdf(GeneratePdfRequest::SinglePage(
+        .generate_pdf_with_optimize(GeneratePdfRequest::SinglePage(
             PdfPage::new("<h1>Invoice #42</h1><p>Amount due: $99.00</p>")
                 .format(PdfFormat::A4)
                 .print_background(true),
-        ))
+        ), Some(true))
         .await?;
 
     println!("PDF URL: {}", pdf.url);
@@ -110,6 +110,7 @@ println!("Request ID: {}", result.request_id);
 ### `generate_pdf` — Costs 2 tokens per page
 
 Pass a `GeneratePdfRequest` — either `SinglePage(PdfPage)` for one page, or `MultiPage { pages: Vec<PdfPage> }` for multiple pages.
+Use `generate_pdf_with_optimize(..., Some(false))` if you need the unoptimized Chromium PDF.
 
 #### Single-page PDF
 
@@ -117,7 +118,7 @@ Pass a `GeneratePdfRequest` — either `SinglePage(PdfPage)` for one page, or `M
 use agentgen::types::{GeneratePdfRequest, PdfPage, PdfFormat, PdfMargin, PdfPageSizeSource};
 
 let result = client
-    .generate_pdf(GeneratePdfRequest::SinglePage(
+    .generate_pdf_with_optimize(GeneratePdfRequest::SinglePage(
         PdfPage::new(r#"
             <html>
               <body style="font-family:sans-serif;padding:40px">
@@ -136,7 +137,7 @@ let result = client
             left: Some("15mm".into()),
             right: Some("15mm".into()),
         }),
-    ))
+    ), Some(true))
     .await?;
 
 println!("PDF URL:   {}", result.url);
@@ -157,7 +158,7 @@ let margin = PdfMargin::all("20mm");
 
 ```rust
 let result = client
-    .generate_pdf(GeneratePdfRequest::MultiPage {
+    .generate_pdf_with_optimize(GeneratePdfRequest::MultiPage {
         pages: vec![
             PdfPage::new("<h1 style='padding:40px'>Page 1 — Cover</h1>")
                 .page_size_source(PdfPageSizeSource::Css)
@@ -171,7 +172,7 @@ let result = client
                 .format(PdfFormat::A4)
                 .margin(PdfMargin::all("10mm")),
         ],
-    })
+    }, Some(true))
     .await?;
 
 println!("Generated {} pages, used {} tokens", result.pages, result.tokens_used);
@@ -396,6 +397,7 @@ agentgen pdf (--html <string> | --file <path> | --pages <file1> <file2> …)
              [--format A4|Letter|A3|Legal]
              [--landscape]
              [--print-background]
+             [--no-optimize]
              [--margin-top <value>] [--margin-bottom <value>]
              [--margin-left <value>] [--margin-right <value>]
              [--output <path>]
@@ -418,6 +420,7 @@ agentgen pdf --file ./invoice.html \
              --page-size-source css \
              --format A4 \
              --print-background \
+             --no-optimize \
              --output invoice.pdf
 ```
 
@@ -454,6 +457,7 @@ Each file in `--pages` becomes one independent page. All pages share the same `-
 | `--format` | `A4` | Fallback paper size: `A4`, `Letter`, `A3`, `Legal` |
 | `--landscape` | off | Landscape orientation |
 | `--print-background` | off | Render CSS backgrounds |
+| `--no-optimize` | off | Disable PDF shrinking post-processing |
 | `--margin-top <value>` | — | Top margin (CSS length, e.g. `20mm`) |
 | `--margin-bottom <value>` | — | Bottom margin |
 | `--margin-left <value>` | — | Left margin |

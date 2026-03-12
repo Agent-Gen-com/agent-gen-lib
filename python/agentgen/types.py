@@ -62,6 +62,16 @@ class PdfPage:
 
 
 @dataclasses.dataclass
+class GeneratePdfOptions:
+    """Top-level PDF request options."""
+
+    pages: list[PdfPage]
+    """Pages to render as one PDF."""
+    optimize: Optional[bool] = None
+    """Shrink the final PDF with a post-processing pass (default True)."""
+
+
+@dataclasses.dataclass
 class GeneratePdfResult:
     url: str
     pages: int

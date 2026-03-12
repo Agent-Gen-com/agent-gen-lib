@@ -13,6 +13,7 @@ from .types import (
     CreateOriginResult,
     GenerateImageOptions,
     GenerateImageResult,
+    GeneratePdfOptions,
     GeneratePdfResult,
     PdfPage,
     UploadOriginPublicKeyResult,
@@ -79,18 +80,26 @@ class AgentGenClient:
         return GenerateImageResult(**r.json())
 
     def generate_pdf(
-        self, options: Union[PdfPage, list[PdfPage]]
+        self,
+        options: Union[PdfPage, list[PdfPage], GeneratePdfOptions],
+        *,
+        optimize: Optional[bool] = None,
     ) -> GeneratePdfResult:
         """Render HTML to a PDF. Costs **2 tokens per page**.
 
         Pass a single :class:`PdfPage` for a one-page document, or a list of
         :class:`PdfPage` objects for a multi-page document.
         """
-        body = (
-            {"pages": [_to_dict(p) for p in options]}
-            if isinstance(options, list)
-            else _to_dict(options)
-        )
+        if isinstance(options, GeneratePdfOptions):
+            body = _to_dict(options)
+        elif isinstance(options, list):
+            body = {"pages": [_to_dict(p) for p in options]}
+            if optimize is not None:
+                body["optimize"] = optimize
+        else:
+            body = _to_dict(options)
+            if optimize is not None:
+                body["optimize"] = optimize
         with httpx.Client() as client:
             r = client.post(
                 f"{self._base_url}/v1/generate/pdf",
@@ -220,17 +229,25 @@ class AsyncAgentGenClient:
         return GenerateImageResult(**r.json())
 
     async def generate_pdf(
-        self, options: Union[PdfPage, list[PdfPage]]
+        self,
+        options: Union[PdfPage, list[PdfPage], GeneratePdfOptions],
+        *,
+        optimize: Optional[bool] = None,
     ) -> GeneratePdfResult:
         """Render HTML to a PDF. Costs **2 tokens per page**.
 
         Pass a single :class:`PdfPage` or a list for multi-page output.
         """
-        body = (
-            {"pages": [_to_dict(p) for p in options]}
-            if isinstance(options, list)
-            else _to_dict(options)
-        )
+        if isinstance(options, GeneratePdfOptions):
+            body = _to_dict(options)
+        elif isinstance(options, list):
+            body = {"pages": [_to_dict(p) for p in options]}
+            if optimize is not None:
+                body["optimize"] = optimize
+        else:
+            body = _to_dict(options)
+            if optimize is not None:
+                body["optimize"] = optimize
         async with httpx.AsyncClient() as client:
             r = await client.post(
                 f"{self._base_url}/v1/generate/pdf",

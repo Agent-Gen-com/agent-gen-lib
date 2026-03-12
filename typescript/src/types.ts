@@ -47,8 +47,19 @@ export interface PdfPage {
   print_background?: boolean;
 }
 
+export interface GeneratePdfSinglePageOptions extends PdfPage {
+  /** Run a post-processing pass to shrink the final PDF (default true). */
+  optimize?: boolean;
+}
+
+export interface GeneratePdfMultiPageOptions {
+  pages: PdfPage[];
+  /** Run a post-processing pass to shrink the final PDF (default true). */
+  optimize?: boolean;
+}
+
 /** Single-page or multi-page PDF input. */
-export type GeneratePdfOptions = PdfPage | { pages: PdfPage[] };
+export type GeneratePdfOptions = GeneratePdfSinglePageOptions | GeneratePdfMultiPageOptions;
 
 export interface GeneratePdfResult {
   url: string;

@@ -1,7 +1,7 @@
 use std::path::Path;
 
 use reqwest::Client;
-use serde_json::Value;
+use serde_json::{json, Value};
 
 use crate::error::AgentGenError;
 use crate::types::{
@@ -73,10 +73,7 @@ impl AgentGenClient {
             return Err(AgentGenError::InsufficientTokens {
                 balance: data["balance"].as_i64().unwrap_or(0),
                 required: data["required"].as_i64().unwrap_or(0),
-                buy_more_url: data["buy_more_url"]
-                    .as_str()
-                    .unwrap_or("")
-                    .to_string(),
+                buy_more_url: data["buy_more_url"].as_str().unwrap_or("").to_string(),
             });
         }
 
@@ -109,11 +106,38 @@ impl AgentGenClient {
         &self,
         request: GeneratePdfRequest,
     ) -> Result<GeneratePdfResponse, AgentGenError> {
+        self.generate_pdf_with_optimize(request, None).await
+    }
+
+    /// Render HTML to a PDF and explicitly control post-processing optimization.
+    /// Costs **2 tokens per page**.
+    pub async fn generate_pdf_with_optimize(
+        &self,
+        request: GeneratePdfRequest,
+        optimize: Option<bool>,
+    ) -> Result<GeneratePdfResponse, AgentGenError> {
+        let body = match request {
+            GeneratePdfRequest::SinglePage(page) => {
+                let mut value = serde_json::to_value(page)?;
+                if let Some(optimize) = optimize {
+                    value["optimize"] = json!(optimize);
+                }
+                value
+            }
+            GeneratePdfRequest::MultiPage { pages } => {
+                let mut value = json!({ "pages": pages });
+                if let Some(optimize) = optimize {
+                    value["optimize"] = json!(optimize);
+                }
+                value
+            }
+        };
+
         let response = self
             .http
             .post(format!("{}/v1/generate/pdf", self.base_url))
             .header("X-API-Key", &self.api_key)
-            .json(&request)
+            .json(&body)
             .send()
             .await?;
         self.handle_response(response).await
@@ -121,10 +145,7 @@ impl AgentGenClient {
 
     /// Upload a file for use inside HTML templates.
     /// **Free** (no tokens). Auto-deleted after **24 hours**.
-    pub async fn upload_temp(
-        &self,
-        file_path: &Path,
-    ) -> Result<UploadTempResponse, AgentGenError> {
+    pub async fn upload_temp(&self, file_path: &Path) -> Result<UploadTempResponse, AgentGenError> {
         let filename = file_path
             .file_name()
             .and_then(|n| n.to_str())
@@ -185,7 +206,10 @@ impl AgentGenClient {
     ) -> Result<UploadOriginPublicKeyResponse, AgentGenError> {
         let response = self
             .http
-            .post(format!("{}/v1/origin/{}/public-key", self.base_url, origin_id))
+            .post(format!(
+                "{}/v1/origin/{}/public-key",
+                self.base_url, origin_id
+            ))
             .header("X-API-Key", &self.api_key)
             .header("Content-Type", "text/plain")
             .body(pem.to_string())

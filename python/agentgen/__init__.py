@@ -23,6 +23,7 @@ from .types import (
     CreateOriginResult,
     GenerateImageOptions,
     GenerateImageResult,
+    GeneratePdfOptions,
     GeneratePdfResult,
     ImageFormat,
     PdfFormat,
@@ -40,6 +41,7 @@ __all__ = [
     "GenerateImageOptions",
     "PdfMargin",
     "PdfPage",
+    "GeneratePdfOptions",
     # Response types
     "GenerateImageResult",
     "GeneratePdfResult",

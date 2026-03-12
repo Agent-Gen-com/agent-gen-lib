@@ -5,11 +5,11 @@ use clap::{Args, Parser, Subcommand};
 use colored::Colorize;
 
 use agentgen::{
-    AgentGenClient,
     types::{
         GenerateImageRequest, GeneratePdfRequest, ImageFormat, PdfFormat, PdfMargin, PdfPage,
         PdfPageSizeSource,
     },
+    AgentGenClient,
 };
 use std::fs;
 
@@ -127,6 +127,10 @@ struct PdfArgs {
     /// Print CSS backgrounds.
     #[arg(long)]
     print_background: bool,
+
+    /// Disable PDF post-processing optimization.
+    #[arg(long)]
+    no_optimize: bool,
 
     /// Top margin (e.g. 20mm).
     #[arg(long)]
@@ -293,7 +297,9 @@ async fn run(command: Commands, client: &AgentGenClient) -> Result<()> {
             let pem = fs::read_to_string(&args.pem_file)
                 .with_context(|| format!("failed to read {}", args.pem_file.display()))?;
             eprintln!("{}", "Uploading public key…".dimmed());
-            let r = client.upload_origin_public_key(&args.origin_id, &pem).await?;
+            let r = client
+                .upload_origin_public_key(&args.origin_id, &pem)
+                .await?;
             println!("{}", "✓ Public key uploaded".green().bold());
             println!("  {:<14} {}", "URL:".dimmed(), r.url);
         }
@@ -312,8 +318,7 @@ async fn run(command: Commands, client: &AgentGenClient) -> Result<()> {
         // ── image ────────────────────────────────────────────────────────────
         Commands::Image(args) => {
             let html = read_html(args.source.html, args.source.file)?;
-            let mut req = GenerateImageRequest::new(html)
-                .format(parse_image_format(&args.format));
+            let mut req = GenerateImageRequest::new(html).format(parse_image_format(&args.format));
             if let Some(w) = args.viewport_width {
                 req = req.viewport_width(w);
             }
@@ -343,7 +348,11 @@ async fn run(command: Commands, client: &AgentGenClient) -> Result<()> {
                 "Format:".dimmed(),
                 format!("{:?}", r.format).to_uppercase()
             );
-            println!("  {:<14} {} token(s)", "Tokens used:".dimmed(), r.tokens_used);
+            println!(
+                "  {:<14} {} token(s)",
+                "Tokens used:".dimmed(),
+                r.tokens_used
+            );
             println!("  {:<14} {}", "Request ID:".dimmed(), r.request_id);
 
             if let Some(output) = args.output {
@@ -394,12 +403,17 @@ async fn run(command: Commands, client: &AgentGenClient) -> Result<()> {
             };
 
             eprintln!("{}", "Generating PDF…".dimmed());
-            let r = client.generate_pdf(request).await?;
+            let optimize = if args.no_optimize { Some(false) } else { None };
+            let r = client.generate_pdf_with_optimize(request, optimize).await?;
 
             println!("{}", "✓ PDF generated".green().bold());
             println!("  {:<14} {}", "URL:".dimmed(), r.url);
             println!("  {:<14} {} page(s)", "Pages:".dimmed(), r.pages);
-            println!("  {:<14} {} token(s)", "Tokens used:".dimmed(), r.tokens_used);
+            println!(
+                "  {:<14} {} token(s)",
+                "Tokens used:".dimmed(),
+                r.tokens_used
+            );
             println!("  {:<14} {}", "Request ID:".dimmed(), r.request_id);
 
             if let Some(out) = output {

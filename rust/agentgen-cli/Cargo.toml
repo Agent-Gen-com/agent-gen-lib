@@ -1,16 +1,20 @@
 [package]
 name = "agentgen-cli"
-version = "0.1.2"
+version = "0.1.3"
 edition = "2021"
 description = "CLI for the AgentGen API — HTML to PDF and Image"
 license = "MIT"
+readme = "../README.md"
+repository = "https://github.com/Agent-Gen-com/agent-gen-lib"
+homepage = "https://github.com/Agent-Gen-com/agent-gen-lib"
+keywords = ["agentgen", "html-to-pdf", "html-to-image", "pdf", "cli"]
 
 [[bin]]
 name = "agentgen"
 path = "src/main.rs"
 
 [dependencies]
-agentgen = { path = "../agentgen", version = "0.1.4" }
+agentgen = { path = "../agentgen", version = "0.1.5" }
 clap = { version = "4", features = ["derive", "env"] }
 tokio = { workspace = true }
 reqwest = { workspace = true }

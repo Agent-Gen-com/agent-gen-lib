@@ -12,9 +12,7 @@ pub enum AgentGenError {
     },
 
     /// The account has insufficient tokens for the requested operation.
-    #[error(
-        "Insufficient tokens: have {balance}, need {required}. Buy more at {buy_more_url}"
-    )]
+    #[error("Insufficient tokens: have {balance}, need {required}. Buy more at {buy_more_url}")]
     InsufficientTokens {
         balance: i64,
         required: i64,
@@ -28,4 +26,8 @@ pub enum AgentGenError {
     /// An I/O error (e.g. reading a file for upload).
     #[error("I/O error: {0}")]
     Io(#[from] std::io::Error),
+
+    /// A serialization error while building the request body.
+    #[error("JSON error: {0}")]
+    Json(#[from] serde_json::Error),
 }

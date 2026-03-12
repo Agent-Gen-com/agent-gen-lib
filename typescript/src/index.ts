@@ -10,6 +10,8 @@ export type {
   GenerateImageResult,
   PdfMargin,
   PdfPage,
+  GeneratePdfSinglePageOptions,
+  GeneratePdfMultiPageOptions,
   GeneratePdfOptions,
   GeneratePdfResult,
   UploadTempResult,

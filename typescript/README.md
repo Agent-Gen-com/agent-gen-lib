@@ -41,6 +41,7 @@ console.log(image.url); // https://…/output.png
 const pdf = await client.generatePdf({
   html: '<h1>Invoice #42</h1><p>Amount due: $99.00</p>',
   format: 'A4',
+  optimize: true,
 });
 console.log(pdf.url); // https://…/output.pdf
 
@@ -112,6 +113,7 @@ const result = await client.generatePdf({
   format: 'A4',            // 'A4' | 'Letter' | 'A3' | 'Legal', default 'A4'
   landscape: false,        // default false
   print_background: true,  // default true
+  optimize: true,          // default true, shrink final PDF
   margin: {
     top: '20mm',
     bottom: '20mm',
@@ -150,6 +152,7 @@ const result = await client.generatePdf({
       margin: { top: '10mm', bottom: '10mm', left: '10mm', right: '10mm' },
     },
   ],
+  optimize: true,
 });
 ```
 
