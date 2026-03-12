@@ -100,13 +100,13 @@ jobs:
         env:
           TAG: ${{ github.ref_name }}
         run: |
-          VERSION="${TAG#cli-v}"
+          export VERSION="${TAG#cli-v}"
 
           # Extract SHA256s from checksums.txt
-          SHA_X86_MACOS=$(grep agentgen-x86_64-macos.tar.gz artifacts/checksums.txt | awk '{print $1}')
-          SHA_AARCH64_MACOS=$(grep agentgen-aarch64-macos.tar.gz artifacts/checksums.txt | awk '{print $1}')
-          SHA_X86_LINUX=$(grep agentgen-x86_64-linux.tar.gz artifacts/checksums.txt | awk '{print $1}')
-          SHA_AARCH64_LINUX=$(grep agentgen-aarch64-linux.tar.gz artifacts/checksums.txt | awk '{print $1}')
+          export SHA_X86_MACOS=$(grep agentgen-x86_64-macos.tar.gz artifacts/checksums.txt | awk '{print $1}')
+          export SHA_AARCH64_MACOS=$(grep agentgen-aarch64-macos.tar.gz artifacts/checksums.txt | awk '{print $1}')
+          export SHA_X86_LINUX=$(grep agentgen-x86_64-linux.tar.gz artifacts/checksums.txt | awk '{print $1}')
+          export SHA_AARCH64_LINUX=$(grep agentgen-aarch64-linux.tar.gz artifacts/checksums.txt | awk '{print $1}')
 
           git clone "https://x-access-token:${HOMEBREW_TAP_TOKEN}@github.com/Agent-Gen-com/homebrew-agentgen.git" tap
           cd tap
