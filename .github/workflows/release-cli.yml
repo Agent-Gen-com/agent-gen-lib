@@ -111,17 +111,24 @@ jobs:
           git clone "https://x-access-token:${HOMEBREW_TAP_TOKEN}@github.com/Agent-Gen-com/homebrew-agentgen.git" tap
           cd tap
 
-          sed -i \
-            -e "s|PLACEHOLDER_VERSION|${VERSION}|g" \
-            -e "s|PLACEHOLDER_TAG|${TAG}|g" \
-            -e "s|PLACEHOLDER_SHA_X86_MACOS|${SHA_X86_MACOS}|g" \
-            -e "s|PLACEHOLDER_SHA_AARCH64_MACOS|${SHA_AARCH64_MACOS}|g" \
-            -e "s|PLACEHOLDER_SHA_X86_LINUX|${SHA_X86_LINUX}|g" \
-            -e "s|PLACEHOLDER_SHA_AARCH64_LINUX|${SHA_AARCH64_LINUX}|g" \
-            Formula/agentgen.rb
+          ruby -e '
+            path = "Formula/agentgen.rb"
+            content = File.read(path)
+            content.sub!(/version ".*"/, %{version "#{ENV.fetch("VERSION")}"})
+            content.sub!(/(on_macos do.*?on_intel do.*?sha256 ")([^"]+)(")/m, "\\1#{ENV.fetch("SHA_X86_MACOS")}\\3")
+            content.sub!(/(on_macos do.*?on_arm do.*?sha256 ")([^"]+)(")/m, "\\1#{ENV.fetch("SHA_AARCH64_MACOS")}\\3")
+            content.sub!(/(on_linux do.*?on_intel do.*?sha256 ")([^"]+)(")/m, "\\1#{ENV.fetch("SHA_X86_LINUX")}\\3")
+            content.sub!(/(on_linux do.*?on_arm do.*?sha256 ")([^"]+)(")/m, "\\1#{ENV.fetch("SHA_AARCH64_LINUX")}\\3")
+            File.write(path, content)
+          '
 
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git config user.name "github-actions[bot]"
+          if git diff --quiet -- Formula/agentgen.rb; then
+            echo "Homebrew formula already up to date."
+            exit 0
+          fi
+
           git add Formula/agentgen.rb
           git commit -m "agentgen ${VERSION}"
           git push
