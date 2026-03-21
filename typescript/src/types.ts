@@ -94,3 +94,18 @@ export interface UploadOriginPublicKeyResult {
   /** Public URL where the PEM key is now accessible. */
   url: string;
 }
+
+export type CompressImageFormat = 'jpeg' | 'png' | 'webp' | 'avif' | 'tiff';
+export type CompressImageMode = 'lossless' | 'balanced' | 'aggressive';
+
+export interface CompressImageResult {
+  url: string;
+  format: CompressImageFormat;
+  mode: CompressImageMode;
+  original_size: number;
+  compressed_size: number;
+  savings_percent: number;
+  width: number;
+  height: number;
+  tokens_used: 1;
+}

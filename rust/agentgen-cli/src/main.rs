@@ -46,6 +46,8 @@ enum Commands {
     Image(ImageArgs),
     /// Render HTML to a PDF (single or multi-page). Costs 2 tokens per page.
     Pdf(PdfArgs),
+    /// Compress an image (JPEG/PNG/WebP/AVIF/TIFF). Costs 1 token.
+    Compress(CompressArgs),
     /// Upload a file for use inside HTML templates (free, 24 h TTL).
     Upload(UploadArgs),
     /// Show the current token balance.
@@ -149,6 +151,24 @@ struct PdfArgs {
     margin_right: Option<String>,
 
     /// Download the generated PDF to this local path.
+    #[arg(long, short)]
+    output: Option<PathBuf>,
+}
+
+#[derive(Args)]
+struct CompressArgs {
+    /// Path to the image file to compress (max 20 MB).
+    file: PathBuf,
+
+    /// Output format: jpeg | png | webp | avif | tiff (default: same as input).
+    #[arg(long)]
+    format: Option<String>,
+
+    /// Compression mode: lossless | balanced | aggressive (default: balanced).
+    #[arg(long)]
+    mode: Option<String>,
+
+    /// Download the compressed image to this local path.
     #[arg(long, short)]
     output: Option<PathBuf>,
 }
@@ -302,6 +322,46 @@ async fn run(command: Commands, client: &AgentGenClient) -> Result<()> {
                 .await?;
             println!("{}", "✓ Public key uploaded".green().bold());
             println!("  {:<14} {}", "URL:".dimmed(), r.url);
+        }
+
+        // ── compress ─────────────────────────────────────────────────────────
+        Commands::Compress(args) => {
+            eprintln!("{} {}…", "Compressing".dimmed(), args.file.display());
+            let r = client
+                .compress_image(
+                    &args.file,
+                    args.format.as_deref(),
+                    args.mode.as_deref(),
+                )
+                .await?;
+            println!("{}", "✓ Image compressed".green().bold());
+            println!("  {:<16} {}", "URL:".dimmed(), r.url);
+            println!(
+                "  {:<16} {} → {} bytes ({:.1}% saved)",
+                "Size:".dimmed(),
+                r.original_size,
+                r.compressed_size,
+                r.savings_percent
+            );
+            println!(
+                "  {:<16} {} × {} px",
+                "Dimensions:".dimmed(),
+                r.width,
+                r.height
+            );
+            println!("  {:<16} {}", "Format:".dimmed(), r.format.to_uppercase());
+            println!("  {:<16} {}", "Mode:".dimmed(), r.mode);
+            println!(
+                "  {:<16} {} token(s)",
+                "Tokens used:".dimmed(),
+                r.tokens_used
+            );
+
+            if let Some(output) = args.output {
+                eprintln!("{} {}…", "Saving to".dimmed(), output.display());
+                download_to(&r.url, &output).await?;
+                println!("{} {}", "✓ Saved →".green(), output.display());
+            }
         }
 
         // ── upload ───────────────────────────────────────────────────────────

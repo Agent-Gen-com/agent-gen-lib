@@ -10,6 +10,7 @@ import httpx
 from .errors import AgentGenError, InsufficientTokensError
 from .types import (
     BalanceResult,
+    CompressImageResult,
     CreateOriginResult,
     GenerateImageOptions,
     GenerateImageResult,
@@ -158,6 +159,50 @@ class AgentGenClient:
             _raise_for_error(r)
         return BalanceResult(**r.json())
 
+    def compress_image(
+        self,
+        file: Union[str, Path, BinaryIO],
+        filename: Optional[str] = None,
+        format: Optional[str] = None,
+        mode: Optional[str] = None,
+    ) -> CompressImageResult:
+        """Compress an image using Sharp. Costs **1 token**. Requires an API key.
+
+        Args:
+            file: A file path (str/Path) or an open binary file object (max 20 MB).
+            filename: Optional filename hint for the upload.
+            format: Output format: "jpeg" | "png" | "webp" | "avif" | "tiff" (default: same as input).
+            mode: Compression mode: "lossless" | "balanced" | "aggressive" (default: "balanced").
+        """
+        if isinstance(file, (str, Path)):
+            path = Path(file)
+            filename = filename or path.name
+            file_obj: BinaryIO = open(path, "rb")
+            should_close = True
+        else:
+            file_obj = file
+            should_close = False
+
+        try:
+            fields: dict = {"file": (filename or "image", file_obj)}
+            if format:
+                fields["format"] = (None, format)
+            if mode:
+                fields["mode"] = (None, mode)
+            with httpx.Client() as client:
+                r = client.post(
+                    f"{self._base_url}/v1/compress/image",
+                    files=fields,
+                    headers=self._headers,
+                )
+        finally:
+            if should_close:
+                file_obj.close()  # type: ignore[union-attr]
+
+        if not r.is_success:
+            _raise_for_error(r)
+        return CompressImageResult(**r.json())
+
     def create_origin(self) -> CreateOriginResult:
         """Provision a new public origin subdomain (``<id>.agent-gen.com``).
 
@@ -299,6 +344,44 @@ class AsyncAgentGenClient:
         if not r.is_success:
             _raise_for_error(r)
         return BalanceResult(**r.json())
+
+    async def compress_image(
+        self,
+        file: Union[str, Path, bytes],
+        filename: Optional[str] = None,
+        format: Optional[str] = None,
+        mode: Optional[str] = None,
+    ) -> CompressImageResult:
+        """Compress an image using Sharp. Costs **1 token**. Requires an API key.
+
+        Args:
+            file: A file path (str/Path) or raw bytes (max 20 MB).
+            filename: Optional filename hint for the upload.
+            format: Output format: "jpeg" | "png" | "webp" | "avif" | "tiff" (default: same as input).
+            mode: Compression mode: "lossless" | "balanced" | "aggressive" (default: "balanced").
+        """
+        if isinstance(file, (str, Path)):
+            path = Path(file)
+            filename = filename or path.name
+            loop = asyncio.get_event_loop()
+            content: bytes = await loop.run_in_executor(None, path.read_bytes)
+        else:
+            content = file
+
+        fields: dict = {"file": (filename or "image", content)}
+        if format:
+            fields["format"] = (None, format)
+        if mode:
+            fields["mode"] = (None, mode)
+        async with httpx.AsyncClient() as client:
+            r = await client.post(
+                f"{self._base_url}/v1/compress/image",
+                files=fields,
+                headers=self._headers,
+            )
+        if not r.is_success:
+            _raise_for_error(r)
+        return CompressImageResult(**r.json())
 
     async def create_origin(self) -> CreateOriginResult:
         """Provision a new public origin subdomain (``<id>.agent-gen.com``).

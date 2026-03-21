@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import dataclasses
-from typing import Literal, Optional
+from typing import Literal, Optional, Union
 
 ImageFormat = Literal["png", "jpeg", "webp"]
 PdfFormat = Literal["A4", "Letter", "A3", "Legal"]
@@ -105,3 +105,20 @@ class CreateOriginResult:
 class UploadOriginPublicKeyResult:
     url: str
     """Public URL where the PEM key is now accessible."""
+
+
+CompressImageFormat = Literal["jpeg", "png", "webp", "avif", "tiff"]
+CompressImageMode = Literal["lossless", "balanced", "aggressive"]
+
+
+@dataclasses.dataclass
+class CompressImageResult:
+    url: str
+    format: str
+    mode: str
+    original_size: int
+    compressed_size: int
+    savings_percent: float
+    width: int
+    height: int
+    tokens_used: int

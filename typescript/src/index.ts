@@ -18,4 +18,7 @@ export type {
   BalanceResult,
   CreateOriginResult,
   UploadOriginPublicKeyResult,
+  CompressImageFormat,
+  CompressImageMode,
+  CompressImageResult,
 } from './types.js';

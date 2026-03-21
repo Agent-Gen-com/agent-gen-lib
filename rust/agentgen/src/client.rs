@@ -5,8 +5,9 @@ use serde_json::{json, Value};
 
 use crate::error::AgentGenError;
 use crate::types::{
-    BalanceResponse, CreateOriginResponse, GenerateImageRequest, GenerateImageResponse,
-    GeneratePdfRequest, GeneratePdfResponse, UploadOriginPublicKeyResponse, UploadTempResponse,
+    BalanceResponse, CompressImageResponse, CreateOriginResponse, GenerateImageRequest,
+    GenerateImageResponse, GeneratePdfRequest, GeneratePdfResponse, UploadOriginPublicKeyResponse,
+    UploadTempResponse,
 };
 
 const DEFAULT_BASE_URL: &str = "https://www.agent-gen.com/api";
@@ -172,6 +173,46 @@ impl AgentGenClient {
             .http
             .get(format!("{}/v1/balance", self.base_url))
             .header("X-API-Key", &self.api_key)
+            .send()
+            .await?;
+        self.handle_response(response).await
+    }
+
+    /// Compress an image using Sharp.
+    /// Costs **1 token**. Requires an API key (no free tier).
+    ///
+    /// # Arguments
+    /// * `file_path` — Path to the image file (max 20 MB).
+    /// * `format` — Optional output format string: "jpeg" | "png" | "webp" | "avif" | "tiff".
+    /// * `mode` — Optional compression mode: "lossless" | "balanced" | "aggressive".
+    pub async fn compress_image(
+        &self,
+        file_path: &Path,
+        format: Option<&str>,
+        mode: Option<&str>,
+    ) -> Result<CompressImageResponse, AgentGenError> {
+        let filename = file_path
+            .file_name()
+            .and_then(|n| n.to_str())
+            .unwrap_or("image")
+            .to_string();
+
+        let bytes = tokio::fs::read(file_path).await?;
+        let part = reqwest::multipart::Part::bytes(bytes).file_name(filename);
+        let mut form = reqwest::multipart::Form::new().part("file", part);
+        if let Some(fmt) = format {
+            form = form.text("format", fmt.to_string());
+        }
+        if let Some(m) = mode {
+            form = form.text("mode", m.to_string());
+        }
+
+        let url = format!("{}/v1/compress/image", self.base_url);
+        let response = self
+            .http
+            .post(url)
+            .header("X-API-Key", &self.api_key)
+            .multipart(form)
             .send()
             .await?;
         self.handle_response(response).await

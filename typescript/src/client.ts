@@ -1,5 +1,8 @@
 import type {
   BalanceResult,
+  CompressImageFormat,
+  CompressImageMode,
+  CompressImageResult,
   CreateOriginResult,
   GenerateImageOptions,
   GenerateImageResult,
@@ -135,6 +138,29 @@ export class AgentGenClient {
    * @param originId The origin ID returned by `createOrigin()`.
    * @param pem Raw PEM text (must start with `-----BEGIN`).
    */
+  /**
+   * Compress an image using Sharp.
+   * Costs **1 token**. Requires an API key (no free tier).
+   *
+   * @param file A `Blob`, `File`, or `BufferSource` to compress (max 20 MB).
+   * @param filename Optional filename hint.
+   * @param format Output format (default: same as input).
+   * @param mode Compression mode: "lossless" | "balanced" | "aggressive" (default: "balanced").
+   */
+  async compressImage(
+    file: Blob | File | BufferSource,
+    filename?: string,
+    format?: CompressImageFormat,
+    mode?: CompressImageMode,
+  ): Promise<CompressImageResult> {
+    const blob = file instanceof Blob ? file : new Blob([file as ArrayBuffer]);
+    const form = new FormData();
+    form.append('file', blob, filename ?? 'image');
+    if (format) form.append('format', format);
+    if (mode) form.append('mode', mode);
+    return this.request('POST', '/v1/compress/image', form);
+  }
+
   uploadOriginPublicKey(originId: string, pem: string): Promise<UploadOriginPublicKeyResult> {
     const headers: Record<string, string> = {
       'X-API-Key': this.apiKey,

@@ -247,3 +247,37 @@ pub struct UploadOriginPublicKeyResponse {
     /// Public URL where the PEM key is now accessible.
     pub url: String,
 }
+
+// ── Compress Image ────────────────────────────────────────────────────────────
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum CompressImageFormat {
+    Jpeg,
+    Png,
+    Webp,
+    Avif,
+    Tiff,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum CompressImageMode {
+    Lossless,
+    Balanced,
+    Aggressive,
+}
+
+/// Response from `POST /v1/compress/image`.
+#[derive(Debug, Clone, Deserialize)]
+pub struct CompressImageResponse {
+    pub url: String,
+    pub format: String,
+    pub mode: String,
+    pub original_size: u64,
+    pub compressed_size: u64,
+    pub savings_percent: f64,
+    pub width: u32,
+    pub height: u32,
+    pub tokens_used: u32,
+}

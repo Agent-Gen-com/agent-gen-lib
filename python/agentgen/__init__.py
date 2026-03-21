@@ -20,6 +20,9 @@ from .client import AgentGenClient, AsyncAgentGenClient
 from .errors import AgentGenError, InsufficientTokensError
 from .types import (
     BalanceResult,
+    CompressImageFormat,
+    CompressImageMode,
+    CompressImageResult,
     CreateOriginResult,
     GenerateImageOptions,
     GenerateImageResult,
@@ -49,9 +52,12 @@ __all__ = [
     "BalanceResult",
     "CreateOriginResult",
     "UploadOriginPublicKeyResult",
+    "CompressImageResult",
     # Literals
     "ImageFormat",
     "PdfFormat",
+    "CompressImageFormat",
+    "CompressImageMode",
     # Errors
     "AgentGenError",
     "InsufficientTokensError",
